@@ -11,12 +11,12 @@ voteRouter.post("/upvotes/:postId", async (req, res) => {
   const { postId } = req.params;
 
   try {
-    if (!req.headers.authorization) {
-      return res.send({
-        success: false,
-        error: "Invalid token used.",
-      });
-    }
+    // if (!req.headers.authorization) {
+    //   return res.send({
+    //     success: false,
+    //     error: "Invalid token used.",
+    //   });
+    // }
 
     if (!req.user) {
       return res.send({
