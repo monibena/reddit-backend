@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  username   String      @unique
+  password   String
+  posts      Post[] //1 user can have many posts
+  subreddits Subreddit[] //1 user can be part of many subreddits
+  upvotes    Upvote[] //should Upvote be plural?
+  downvotes  Downvote[] //should Downvote be plural?
+}
+
+model Post {
+  id          String     @id @default(uuid())
+  text        String //ask if it should be unique?
+  title       String?
+  userId      String
+  subredditId String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId    String? //if inital post, parentId (type: string) will be NULL
+  parent      Post?      @relation("parentChild", fields: [parentId], references: [id], onDelete: Cascade) //???should post? be use?
+  children    Post[]     @relation("parentChild") //children is an array of post objects - 1 to many relationship where 1 post can have multiple replies/children
+  subreddit   Subreddit  @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+  upvotes     Upvote[] //post can have multiple votes
+  downvotes   Downvote[] //posts can have multiple downvotes
+}
+
+model Subreddit {
+  id     String @id @default(uuid())
+  name   String @unique //subreddit name
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts  Post[] //one to many relationship, where the subreddit can have multiple posts, posts[] will hold an array of posts objects
+}
+
+model Upvote {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Downvote {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+
+  @@unique([userId, postId])
+}
